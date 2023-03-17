@@ -59,6 +59,7 @@
 #include "indexers/xgandalf.h"
 #include "indexers/pinkindexer.h"
 #include "indexers/fromfile.h"
+#include "indexers/fast_indexer.h"
 
 #include "uthash.h"
 
@@ -174,6 +175,10 @@ char *base_indexer_str(IndexingMethod indm)
 		strcpy(str, "file");
 		break;
 
+        case INDEXING_FAST_INDEXER :
+        strcpy(str, "fast_indexer");
+        break;
+
 		default :
 		strcpy(str, "(unknown)");
 		break;
@@ -253,6 +258,10 @@ static void *prepare_method(IndexingMethod *m, UnitCell *cell,
 		case INDEXING_XGANDALF :
 		priv = xgandalf_prepare(m, cell, xgandalf_opts);
 		break;
+
+        case INDEXING_FAST_INDEXER :
+        priv = fast_indexer_prepare(m, cell);
+        break;
 
 		case INDEXING_PINKINDEXER :
 		priv = pinkIndexer_prepare(m, cell, pinkIndexer_opts,
@@ -510,6 +519,10 @@ void cleanup_indexing(IndexingPrivate *ipriv)
 			xgandalf_cleanup(ipriv->engine_private[n]);
 			break;
 
+            case INDEXING_FAST_INDEXER:
+            fast_indexer_cleanup(ipriv->engine_private[n]);
+            break;
+
 			case INDEXING_PINKINDEXER :
 			pinkIndexer_cleanup(ipriv->engine_private[n]);
 			break;
@@ -671,7 +684,14 @@ static int try_indexer(struct image *image, IndexingMethod indm,
 		profile_end("xgandalf");
 		break;
 
-		default :
+        case INDEXING_FAST_INDEXER:
+        set_last_task(last_task, "indexing:fast_indexer");
+        profile_start("fast_indexer");
+        r = run_fast_indexer(image, mpriv);
+        profile_end("fast_indexer");
+        break;
+
+        default :
 		ERROR("Unrecognised indexing method: %i\n", indm);
 		return 0;
 
@@ -1144,6 +1164,10 @@ IndexingMethod get_indm_from_string_2(const char *str, int *err)
 			method = INDEXING_FILE;
 			return method;
 
+        } else if ( strcmp(bits[i], "fast_indexer") == 0) {
+            if ( have_method ) return warn_method(str);
+            method = INDEXING_DEFAULTS_FAST_INDEXER;
+            have_method = 1;
 		} else if ( strcmp(bits[i], "latt") == 0) {
 			method = set_lattice(method);
 
@@ -1228,6 +1252,7 @@ char *detect_indexing_methods(UnitCell *cell)
 	do_probe(asdf_probe, cell, methods);
 	do_probe(dirax_probe, cell, methods);
 	do_probe(xds_probe, cell, methods);
+    do_probe(fast_indexer_probe, cell, methods);
 
 	//do_probe(felix_probe, cell, methods);
 	//do_probe(pinkIndexer_probe, cell, methods);

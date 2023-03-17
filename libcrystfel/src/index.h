@@ -61,6 +61,8 @@
 
 #define INDEXING_DEFAULTS_PINKINDEXER (INDEXING_PINKINDEXER | INDEXING_USE_CELL_PARAMETERS)
 
+#define INDEXING_DEFAULTS_FAST_INDEXER (INDEXING_FAST_INDEXER | INDEXING_USE_CELL_PARAMETERS)
+
 /**
  * An enumeration of all the available indexing methods.
  **/
@@ -78,7 +80,7 @@ typedef enum {
 	INDEXING_TAKETWO = 9,     /**< Use built-in TakeTwo algorithm */
 	INDEXING_XGANDALF = 10,   /**< Use XGANDALF (via optional library) */
 	INDEXING_PINKINDEXER = 11,/**< Use PinkIndexer (via optional library) */
-
+    INDEXING_FAST_INDEXER = 12, /**< Use PSI Fast Indexer (via optional library) */
 	INDEXING_ERROR = 255,     /**< Special value for unrecognised indexing
 	                           *   engine */
 

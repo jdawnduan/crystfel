@@ -4,6 +4,7 @@
 #cmakedefine HAVE_FFTW
 #cmakedefine HAVE_XGANDALF
 #cmakedefine HAVE_PINKINDEXER
+#cmakedefine HAVE_FAST_INDEXER
 #cmakedefine HAVE_FDIP
 #cmakedefine HAVE_ZLIB
 #cmakedefine HAVE_GZBUFFER
