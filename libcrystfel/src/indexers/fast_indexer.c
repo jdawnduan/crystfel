@@ -95,7 +95,10 @@ int run_fast_indexer(struct image *image, void *ipriv) {
     for (int i = 0; i < 9; i++)
         cell[i] = cell_internal_double[i] * 1e10;
 
-    fast_feedback_crystfel(cell, x,y,z, npk);
+    struct ffbidx_settings settings;
+    settings.max_spots = 100;
+
+    fast_feedback_crystfel(&settings, cell, x, y, z, npk);
 
     free(x);
     free(y);
