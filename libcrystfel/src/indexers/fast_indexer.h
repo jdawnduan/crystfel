@@ -32,13 +32,17 @@
 
 #include "index.h"
 
+#include <argp.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+extern int fast_indexer_default_options(struct fast_feedback_options **opts_ptr);
+
 extern int run_fast_indexer(struct image *image, void *ipriv);
 
-extern void *fast_indexer_prepare(IndexingMethod *indm, UnitCell *cell);
+extern void *fast_indexer_prepare(IndexingMethod *indm, UnitCell *cell, struct fast_feedback_options *opts);
 
 extern void fast_indexer_cleanup(void *pp);
 

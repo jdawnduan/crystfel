@@ -211,6 +211,7 @@ static void *prepare_method(IndexingMethod *m, UnitCell *cell,
                             double wavelength_estimate,
                             double clen_estimate,
                             struct xgandalf_options *xgandalf_opts,
+                            struct fast_feedback_options *fast_feedback_opts,
                             struct pinkindexer_options* pinkIndexer_opts,
                             struct felix_options *felix_opts,
                             struct taketwo_options *taketwo_opts,
@@ -260,7 +261,7 @@ static void *prepare_method(IndexingMethod *m, UnitCell *cell,
 		break;
 
         case INDEXING_FAST_INDEXER :
-        priv = fast_indexer_prepare(m, cell);
+        priv = fast_indexer_prepare(m, cell, fast_feedback_opts);
         break;
 
 		case INDEXING_PINKINDEXER :
@@ -347,6 +348,7 @@ IndexingPrivate *setup_indexing(const char *method_list,
                                 int n_threads,
                                 struct taketwo_options *ttopts,
                                 struct xgandalf_options *xgandalf_opts,
+                                struct fast_feedback_options *fast_feedback_opts,
                                 struct pinkindexer_options *pinkIndexer_opts,
                                 struct felix_options *felix_opts,
                                 struct fromfile_options *fromfile_opts,
@@ -418,6 +420,7 @@ IndexingPrivate *setup_indexing(const char *method_list,
 		                                          wavelength_estimate,
 		                                          clen_estimate,
 		                                          xgandalf_opts,
+                                                  fast_feedback_opts,
 		                                          pinkIndexer_opts,
 		                                          felix_opts,
 		                                          ttopts,
@@ -1268,6 +1271,7 @@ char *detect_indexing_methods(UnitCell *cell)
 
 void default_method_options(struct taketwo_options **ttopts,
                             struct xgandalf_options **xgandalf_opts,
+                            struct fast_feedback_options **fast_feedback_opts,
                             struct pinkindexer_options **pinkIndexer_opts,
                             struct felix_options **felix_opts,
                             struct fromfile_options **fromfile_opts,
@@ -1275,6 +1279,7 @@ void default_method_options(struct taketwo_options **ttopts,
 {
 	taketwo_default_options(ttopts);
 	xgandalf_default_options(xgandalf_opts);
+    fast_indexer_default_options(fast_feedback_opts);
 	pinkIndexer_default_options(pinkIndexer_opts);
 	felix_default_options(felix_opts);
 	fromfile_default_options(fromfile_opts);

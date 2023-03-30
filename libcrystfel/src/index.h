@@ -159,6 +159,12 @@ struct xgandalf_options {
 	int maxPeaksForIndexing;
 };
 
+struct fast_feedback_options {
+    unsigned max_peaks;
+    unsigned min_peaks;
+    float threshold_for_solution;
+    unsigned output_cells;
+};
 
 struct taketwo_options
 {
@@ -217,11 +223,13 @@ extern struct argp felix_argp;
 extern struct argp pinkIndexer_argp;
 extern struct argp taketwo_argp;
 extern struct argp xgandalf_argp;
+extern struct argp fast_feedback_argp;
 extern struct argp fromfile_argp;
 extern struct argp asdf_argp;
 
 extern void default_method_options(struct taketwo_options **ttopts,
                                    struct xgandalf_options **xgandalf_opts,
+                                   struct fast_feedback_options **fast_feedack_opts,
                                    struct pinkindexer_options **pinkIndexer_opts,
                                    struct felix_options **felix_opts,
                                    struct fromfile_options **fromfile_opts,
@@ -236,6 +244,7 @@ extern IndexingPrivate *setup_indexing(const char *methods,
                                        int n_threads,
                                        struct taketwo_options *ttopts,
                                        struct xgandalf_options *xgandalf_opts,
+                                       struct fast_feedback_options *fast_feedack_opts,
                                        struct pinkindexer_options *pinkIndexer_opts,
                                        struct felix_options *felix_opts,
                                        struct fromfile_options *fromfile_opts,
