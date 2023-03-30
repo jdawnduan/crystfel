@@ -164,6 +164,7 @@ struct ffbidx_options {
     unsigned min_peaks;
     float threshold_for_solution;
     unsigned output_cells;
+    unsigned sample_points;
 };
 
 struct taketwo_options

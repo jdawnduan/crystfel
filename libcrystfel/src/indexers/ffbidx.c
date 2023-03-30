@@ -100,10 +100,11 @@ int run_ffbidx(struct image *image, void *ipriv) {
         cell[i] = cell_internal_double[i] * 1e10;
 
     struct ffbidx_settings settings;
-    settings.max_spots_to_index = prv_data->opts.max_peaks;
-    settings.min_spots_for_solution = prv_data->opts.min_peaks;
-    settings.threshold = prv_data->opts.threshold_for_solution;
-    settings.output_cells = prv_data->opts.output_cells;
+    settings.cpers_max_spots = prv_data->opts.max_peaks;
+    settings.cifss_min_spots = prv_data->opts.min_peaks;
+    settings.cvc_threshold = prv_data->opts.threshold_for_solution;
+    settings.cpers_max_output_cells = prv_data->opts.output_cells;
+    settings.crt_num_sample_points = prv_data->opts.sample_points;
 
     fast_feedback_crystfel(&settings, cell, x, y, z, npk);
 
@@ -131,10 +132,6 @@ int run_ffbidx(struct image *image, void *ipriv) {
         cell_free(uc);
         return 0;
     }
-
-    //cell_free(uc);
-    //return 0;
-
 
     Crystal *cr = crystal_new();
     if ( cr == NULL ) {
@@ -188,6 +185,10 @@ static void ffbidx_show_help()
            "     --ffbidx-output-cells\n"
            "                            Number of output cells.\n"
            "                            Default: 1\n"
+           "     --ffbidx-sample-points\n"
+           "                            Number of sample points.\n"
+           "                            Default: 32768\n"
+
     );
 }
 
@@ -203,6 +204,7 @@ int ffbidx_default_options(struct ffbidx_options **opts_ptr)
     opts->min_peaks = 9;
     opts->threshold_for_solution = 0.02f;
     opts->output_cells = 1;
+    opts->sample_points = 32*1024;
     *opts_ptr = opts;
     return 0;
 }
@@ -257,6 +259,12 @@ static error_t ffbidx_parse_arg(int key, char *arg, struct argp_state *state)
                 return EINVAL;
             }
             break;
+        case 6 :
+            if (sscanf(arg, "%u", &(*opts_ptr)->sample_points) != 1) {
+                ERROR("Invalid value for --ffbidx-sample-points\n");
+                return EINVAL;
+            }
+            break;
     }
 
     return 0;
@@ -269,6 +277,7 @@ static struct argp_option ffbidx_options[] = {
         {"ffbidx-min-peaks", 3, "ffbidx_minn", OPTION_HIDDEN, NULL},
         {"ffbidx-threshold", 4, "ffbidx_threshold", OPTION_HIDDEN, NULL},
         {"ffbidx-output-cells", 5, "ffbidx_out_cells", OPTION_HIDDEN, NULL},
+        {"ffbidx-sample-points", 6, "ffbidx_sample_points", OPTION_HIDDEN, NULL},
         {0}
 };
 
