@@ -3,7 +3,7 @@ project(libcrystfel VERSION ${CRYSTFEL_SHORT_VERSION} LANGUAGES C)
 pkg_check_modules(XGANDALF xgandalf)
 pkg_check_modules(PINKINDEXER pinkIndexer)
 pkg_check_modules(FDIP fdip)
-pkg_check_modules(FAST_INDEXER fast_indexer_crystfel)
+pkg_check_modules(FFBIDX fast_indexer_crystfel)
 find_package(ZLIB)
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
@@ -17,7 +17,7 @@ set(HAVE_FFTW ${FFTW_FOUND})
 set(HAVE_XGANDALF ${XGANDALF_FOUND})
 set(HAVE_PINKINDEXER ${PINKINDEXER_FOUND})
 set(HAVE_FDIP ${FDIP_FOUND})
-set(HAVE_FAST_INDEXER ${FAST_INDEXER_FOUND})
+set(HAVE_FFBIDX ${FFBIDX_FOUND})
 set(HAVE_MSGPACK ${MSGPACK_FOUND})
 set(HAVE_LIBCCP4 ${LIBCCP4_FOUND})
 set(HAVE_ZLIB ${ZLIB_FOUND})
@@ -78,7 +78,7 @@ set(LIBCRYSTFEL_SOURCES
     src/indexers/xgandalf.c
     src/indexers/pinkindexer.c
     src/indexers/fromfile.c
-    src/indexers/fast_indexer.c
+    src/indexers/ffbidx.c
 )
 
 set(LIBCRYSTFEL_HEADERS
@@ -151,10 +151,10 @@ if (PINKINDEXER_FOUND)
   target_link_libraries(${PROJECT_NAME} PRIVATE ${PINKINDEXER_LINK_LIBRARIES})
 endif (PINKINDEXER_FOUND)
 
-if (FAST_INDEXER_FOUND)
-    target_include_directories(${PROJECT_NAME} PRIVATE ${FAST_INDEXER_INCLUDE_DIRS})
-    target_link_libraries(${PROJECT_NAME} PRIVATE ${FAST_INDEXER_LINK_LIBRARIES})
-endif (FAST_INDEXER_FOUND)
+if (FFBIDX_FOUND)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${FFBIDX_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${FFBIDX_LINK_LIBRARIES})
+endif (FFBIDX_FOUND)
 
 if (FFTW_FOUND)
   target_include_directories(${PROJECT_NAME} PRIVATE ${FFTW_INCLUDE_DIRS})

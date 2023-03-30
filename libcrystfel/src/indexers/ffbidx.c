@@ -1,5 +1,5 @@
 /*
- * fast_indexer.c
+ * ffbidx.c
  *
  * Invoke the Fast Feedback Indexer library
  *
@@ -33,13 +33,13 @@
 #include <stdlib.h>
 
 #include "cell-utils.h"
-#include "fast_indexer.h"
+#include "ffbidx.h"
 
-#ifdef HAVE_FAST_INDEXER
+#ifdef HAVE_FFBIDX
 
-struct fast_indexer_private_data {
+struct ffbidx_private_data {
     UnitCell *cellTemplate;
-    struct fast_feedback_options opts;
+    struct ffbidx_options opts;
 };
 
 static void makeRightHanded(UnitCell *cell)
@@ -53,11 +53,11 @@ static void makeRightHanded(UnitCell *cell)
     }
 }
 
-int run_fast_indexer(struct image *image, void *ipriv) {
+int run_ffbidx(struct image *image, void *ipriv) {
     int npk;
     int i;
 
-    struct fast_indexer_private_data *prv_data = (struct fast_indexer_private_data *) ipriv;
+    struct ffbidx_private_data *prv_data = (struct ffbidx_private_data *) ipriv;
 
     npk = image_feature_count(image->features);
     if ( npk < prv_data->opts.min_peaks )
@@ -127,7 +127,7 @@ int run_fast_indexer(struct image *image, void *ipriv) {
     cell_set_unique_axis(uc, cell_get_unique_axis(prv_data->cellTemplate));
 
     if ( validate_cell(uc) ) {
-        ERROR("fast_indexer: problem with returned cell!\n");
+        ERROR("ffbidx: problem with returned cell!\n");
         cell_free(uc);
         return 0;
     }
@@ -147,13 +147,13 @@ int run_fast_indexer(struct image *image, void *ipriv) {
     return 1;
 }
 
-void *fast_indexer_prepare(IndexingMethod *indm, UnitCell *cell, struct fast_feedback_options *opts) {
+void *ffbidx_prepare(IndexingMethod *indm, UnitCell *cell, struct ffbidx_options *opts) {
     if ( cell == NULL ) {
-        ERROR("Unit cell information is required for fast indexer.\n");
+        ERROR("Unit cell information is required for fast feedback indexer.\n");
         return NULL;
     }
 
-    struct fast_indexer_private_data *prv_data = (struct fast_indexer_private_data *) malloc(sizeof(struct fast_indexer_private_data));
+    struct ffbidx_private_data *prv_data = (struct ffbidx_private_data *) malloc(sizeof(struct ffbidx_private_data));
 
     prv_data->cellTemplate = cell;
     prv_data->opts = *opts;
@@ -162,41 +162,41 @@ void *fast_indexer_prepare(IndexingMethod *indm, UnitCell *cell, struct fast_fee
     return prv_data;
 }
 
-void fast_indexer_cleanup(void *pp) {
+void ffbidx_cleanup(void *pp) {
     free(pp);
 }
 
-const char *fast_indexer_probe(UnitCell *cell) {
-    return "fast_indexer";
+const char *ffbidx_probe(UnitCell *cell) {
+    return "ffbidx";
 }
 
 #endif
 
-static void fast_indexer_show_help()
+static void ffbidx_show_help()
 {
     printf("Parameters for the fast feedback indexing algorithm:\n"
-           "     --fast-feedback-indexer-max-peaks\n"
+           "     --ffbidx-max-peaks\n"
            "                            Maximum number of peaks used for indexing.\n"
            "                            All peaks are used for refinement.\n"
            "                            Default: 250\n"
-           "     --fast-feedback-indexer-min-peaks\n"
+           "     --ffbidx-min-peaks\n"
            "                            Maximum number of indexed peaks to accept solution.\n"
            "                            Default: 9\n"
-           "     --fast-feedback-indexer-threshold\n"
+           "     --ffbidx-threshold\n"
            "                            Threshold to accept solution as indexed.\n"
            "                            Default: 0.02\n"
-           "     --fast-feedback-indexer-output-cells\n"
+           "     --ffbidx-output-cells\n"
            "                            Number of output cells.\n"
            "                            Default: 1\n"
     );
 }
 
 
-int fast_indexer_default_options(struct fast_feedback_options **opts_ptr)
+int ffbidx_default_options(struct ffbidx_options **opts_ptr)
 {
-    struct fast_feedback_options *opts;
+    struct ffbidx_options *opts;
 
-    opts = malloc(sizeof(struct fast_feedback_options));
+    opts = malloc(sizeof(struct ffbidx_options));
     if ( opts == NULL ) return ENOMEM;
 
     opts->max_peaks = 100;
@@ -208,52 +208,52 @@ int fast_indexer_default_options(struct fast_feedback_options **opts_ptr)
 }
 
 
-static error_t fast_indexer_parse_arg(int key, char *arg, struct argp_state *state)
+static error_t ffbidx_parse_arg(int key, char *arg, struct argp_state *state)
 {
-    struct fast_feedback_options **opts_ptr = state->input;
+    struct ffbidx_options **opts_ptr = state->input;
     int r;
 
     switch ( key ) {
         case ARGP_KEY_INIT :
-            r = fast_indexer_default_options(opts_ptr);
+            r = ffbidx_default_options(opts_ptr);
             if ( r ) return r;
             break;
 
         case 1 :
-            fast_indexer_show_help();
+            ffbidx_show_help();
             return EINVAL;
 
         case 2 :
             if (sscanf(arg, "%u", &(*opts_ptr)->max_peaks) != 1) {
-                ERROR("Invalid value for --fast-feedback-indexer-max-peaks\n");
+                ERROR("Invalid value for --ffbidx-max-peaks\n");
                 return EINVAL;
             }
             break;
 
         case 3 :
             if (sscanf(arg, "%u", &(*opts_ptr)->min_peaks) != 1) {
-                ERROR("Invalid value for --fast-feedback-indexer-min-peaks\n");
+                ERROR("Invalid value for --ffbidx-min-peaks\n");
                 return EINVAL;
             }
             break;
 
         case 4 :
             if (sscanf(arg, "%f", &(*opts_ptr)->threshold_for_solution) != 1) {
-                ERROR("Invalid value for --fast-feedback-indexer-threshold\n");
+                ERROR("Invalid value for --ffbidx-threshold\n");
                 return EINVAL;
             }
             if (((*opts_ptr)->threshold_for_solution <= 0.0f) || ((*opts_ptr)->threshold_for_solution > 1.0f)) {
-                ERROR("Invalid value for --fast-feedback-indexer-threshold; must be in range 0.0-1.0\n");
+                ERROR("Invalid value for --ffbidx-threshold; must be in range 0.0-1.0\n");
                 return EINVAL;
             }
             break;
         case 5 :
             if (sscanf(arg, "%u", &(*opts_ptr)->output_cells) != 1) {
-                ERROR("Invalid value for --fast-feedback-indexer-output-cells\n");
+                ERROR("Invalid value for --ffbidx-output-cells\n");
                 return EINVAL;
             }
             if (((*opts_ptr)->output_cells == 0) || ((*opts_ptr)->output_cells > 128)) {
-                ERROR("Invalid value for --fast-feedback-indexer-output-cells; must be in range 1-128\n");
+                ERROR("Invalid value for --ffbidx-output-cells; must be in range 1-128\n");
                 return EINVAL;
             }
             break;
@@ -263,15 +263,15 @@ static error_t fast_indexer_parse_arg(int key, char *arg, struct argp_state *sta
 }
 
 
-static struct argp_option fast_indexer_options[] = {
-        {"help-fast-feedback-indexer", 1, NULL, OPTION_NO_USAGE, "Show options for fast feedback indexing algorithm", 99},
-        {"fast-feedback-indexer-max-peaks", 2, "ffbidx_maxn", OPTION_HIDDEN, NULL},
-        {"fast-feedback-indexer-min-peaks", 3, "ffbidx_minn", OPTION_HIDDEN, NULL},
-        {"fast-feedback-indexer-threshold", 4, "ffbidx_threshold", OPTION_HIDDEN, NULL},
-        {"fast-feedback-indexer-output-cells", 5, "ffbidx_out_cells", OPTION_HIDDEN, NULL},
+static struct argp_option ffbidx_options[] = {
+        {"help-ffbidx", 1, NULL, OPTION_NO_USAGE, "Show options for fast feedback indexing algorithm", 99},
+        {"ffbidx-max-peaks", 2, "ffbidx_maxn", OPTION_HIDDEN, NULL},
+        {"ffbidx-min-peaks", 3, "ffbidx_minn", OPTION_HIDDEN, NULL},
+        {"ffbidx-threshold", 4, "ffbidx_threshold", OPTION_HIDDEN, NULL},
+        {"ffbidx-output-cells", 5, "ffbidx_out_cells", OPTION_HIDDEN, NULL},
         {0}
 };
 
 
-struct argp fast_feedback_argp = { fast_indexer_options, fast_indexer_parse_arg,
+struct argp ffbidx_argp = { ffbidx_options, ffbidx_parse_arg,
                               NULL, NULL, NULL, NULL, NULL };

@@ -1,5 +1,5 @@
 /*
- * fast_indexer.h
+ * ffbidx.h
  *
  * Invoke the Fast Feedback Indexer library
  *
@@ -27,8 +27,8 @@
  *
  */
 
-#ifndef CRYSTFEL_FAST_INDEXER_H
-#define CRYSTFEL_FAST_INDEXER_H
+#ifndef CRYSTFEL_FFBIDX_H
+#define CRYSTFEL_FFBIDX_H
 
 #include "index.h"
 
@@ -38,18 +38,18 @@
 extern "C" {
 #endif
 
-extern int fast_indexer_default_options(struct fast_feedback_options **opts_ptr);
+extern int ffbidx_default_options(struct ffbidx_options **opts_ptr);
 
-extern int run_fast_indexer(struct image *image, void *ipriv);
+extern int run_ffbidx(struct image *image, void *ipriv);
 
-extern void *fast_indexer_prepare(IndexingMethod *indm, UnitCell *cell, struct fast_feedback_options *opts);
+extern void *ffbidx_prepare(IndexingMethod *indm, UnitCell *cell, struct ffbidx_options *opts);
 
-extern void fast_indexer_cleanup(void *pp);
+extern void ffbidx_cleanup(void *pp);
 
-extern const char *fast_indexer_probe(UnitCell *cell);
+extern const char *ffbidx_probe(UnitCell *cell);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif //CRYSTFEL_FAST_INDEXER_H
+#endif //CRYSTFEL_FFBIDX_H
