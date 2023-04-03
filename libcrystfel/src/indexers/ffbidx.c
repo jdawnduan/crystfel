@@ -105,7 +105,8 @@ int run_ffbidx(struct image *image, void *ipriv) {
     settings.cvc_threshold = prv_data->opts.threshold_for_solution;
     settings.cpers_max_output_cells = prv_data->opts.output_cells;
     settings.crt_num_sample_points = prv_data->opts.sample_points;
-
+    settings.cpers_num_candidate_vectors = 32u;
+    
     fast_feedback_crystfel(&settings, cell, x, y, z, npk);
 
     free(x);
