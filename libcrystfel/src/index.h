@@ -165,6 +165,7 @@ struct ffbidx_options {
     float threshold_for_solution;
     unsigned output_cells;
     unsigned sample_points;
+    unsigned num_candidate_vectors;   // number of candidate sampling vectors kept
 };
 
 struct taketwo_options
