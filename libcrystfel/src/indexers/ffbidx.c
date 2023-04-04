@@ -29,13 +29,14 @@
 
 #include <libcrystfel-config.h>
 #include <stdio.h>
-#include <ffbidx/c-wrapper.h>
 #include <stdlib.h>
 
 #include "cell-utils.h"
 #include "ffbidx.h"
 
 #ifdef HAVE_FFBIDX
+
+#include <ffbidx/c-wrapper.h>
 
 struct ffbidx_private_data {
     UnitCell *cellTemplate;
@@ -166,6 +167,33 @@ void ffbidx_cleanup(void *pp) {
 
 const char *ffbidx_probe(UnitCell *cell) {
     return "ffbidx";
+}
+
+#else
+
+int run_ffbidx(struct image *image, void *ipriv)
+{
+	ERROR("This copy of CrystFEL was compiled without FFBIDX support.\n");
+	return 0;
+}
+
+
+void *ffbidx_prepare(IndexingMethod *indm, UnitCell *cell, struct ffbidx_options *opts)
+{
+	ERROR("This copy of CrystFEL was compiled without FFBIDX support.\n");
+	ERROR("To use FFBIDX indexing, recompile with FFBIDX.\n");
+	return NULL;
+}
+
+
+void ffbidx_cleanup(void *pp)
+{
+}
+
+
+const char *ffbidx_probe(UnitCell *cell)
+{
+	return NULL;
 }
 
 #endif
