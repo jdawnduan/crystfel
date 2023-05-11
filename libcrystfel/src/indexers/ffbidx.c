@@ -93,9 +93,9 @@ int run_ffbidx(struct image *image, void *ipriv) {
     double cell_internal_double[9];
 
     cell_get_cartesian(prv_data->cellTemplate,
-                       &cell_internal_double[0],&cell_internal_double[1],&cell_internal_double[2],
-                       &cell_internal_double[3],&cell_internal_double[4],&cell_internal_double[5],
-                       &cell_internal_double[6],&cell_internal_double[7],&cell_internal_double[8]);
+                       &cell_internal_double[0],&cell_internal_double[3],&cell_internal_double[6],
+                       &cell_internal_double[1],&cell_internal_double[4],&cell_internal_double[7],
+                       &cell_internal_double[2],&cell_internal_double[5],&cell_internal_double[8]);
 
     for (int i = 0; i < 9; i++)
         cell[i] = cell_internal_double[i] * 1e10;
