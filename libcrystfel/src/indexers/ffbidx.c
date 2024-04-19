@@ -102,7 +102,7 @@ int run_ffbidx(struct image *image, void *ipriv) {
 
     struct ffbidx_settings settings;
     settings.cpers_max_spots = prv_data->opts.max_peaks;
-    settings.cifss_min_spots = prv_data->opts.min_peaks;
+    settings.cifssr_min_spots = prv_data->opts.min_peaks;
     settings.cvc_threshold = prv_data->opts.threshold_for_solution;
     settings.cpers_max_output_cells = prv_data->opts.output_cells;
     settings.crt_num_sample_points = prv_data->opts.sample_points;
