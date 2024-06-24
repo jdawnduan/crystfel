@@ -36,7 +36,7 @@
 
 #ifdef HAVE_FFBIDX
 
-#include <ffbidx/c-wrapper.h>
+#include <ffbidx/c_api.h>
 
 struct ffbidx_private_data {
     UnitCell *cellTemplate;
@@ -64,9 +64,39 @@ int run_ffbidx(struct image *image, void *ipriv) {
     if ( npk < prv_data->opts.min_peaks )
         return 0;
 
-    float *x = (float *) calloc(npk, sizeof(float));
-    float *y = (float *) calloc(npk, sizeof(float));
-    float *z = (float *) calloc(npk, sizeof(float));
+    // Setup configuration
+    struct config_runtime cruntime;
+    struct config_persistent cpers;
+    struct config_ifssr cifssr;
+
+    set_defaults(&cpers, &cruntime, &cifssr);
+    cpers.max_spots = prv_data->opts.max_peaks;
+
+    cifssr.min_spots = prv_data->opts.min_peaks;
+    cpers.max_output_cells = prv_data->opts.output_cells;
+    cpers.num_candidate_vectors = prv_data->opts.num_candidate_vectors;
+
+    struct input ffbidx_input;
+    struct output ffbidx_output;
+
+    ffbidx_input.cell.x = (float *) calloc(3, sizeof(float));
+    ffbidx_input.cell.y = (float *) calloc(3, sizeof(float));
+    ffbidx_input.cell.z = (float *) calloc(3, sizeof(float));
+
+    ffbidx_input.spot.x = (float *) calloc(npk, sizeof(float));
+    ffbidx_input.spot.y = (float *) calloc(npk, sizeof(float));
+    ffbidx_input.spot.z = (float *) calloc(npk, sizeof(float));
+
+    ffbidx_input.n_cells = 1;
+    ffbidx_input.n_spots = npk;
+    ffbidx_input.new_cells = true;
+    ffbidx_input.new_spots = true;
+
+    ffbidx_output.x = (float *) calloc(3 * cpers.max_output_cells, sizeof(float));
+    ffbidx_output.y = (float *) calloc(3 * cpers.max_output_cells, sizeof(float));
+    ffbidx_output.z = (float *) calloc(3 * cpers.max_output_cells, sizeof(float));
+    ffbidx_output.score = (float *) calloc(cpers.max_output_cells, sizeof(float));
+    ffbidx_output.n_cells = cpers.max_output_cells;
 
     for ( i=0; i<npk; i++ ) {
 
@@ -82,13 +112,10 @@ int run_ffbidx(struct image *image, void *ipriv) {
         detgeom_transform_coords(&image->detgeom->panels[f->pn],
                                  f->fs, f->ss, image->lambda,
                                  0.0, 0.0, r);
-        x[i] = r[0] * 1e-10;
-        y[i] = r[1] * 1e-10;
-        z[i] = r[2] * 1e-10;
+        ffbidx_input.spot.x[i] = r[0] * 1e-10;
+        ffbidx_input.spot.y[i] = r[1] * 1e-10;
+        ffbidx_input.spot.z[i] = r[2] * 1e-10;
     }
-
-
-    float cell[9];
 
     double cell_internal_double[9];
 
@@ -97,37 +124,67 @@ int run_ffbidx(struct image *image, void *ipriv) {
                        &cell_internal_double[1],&cell_internal_double[4],&cell_internal_double[7],
                        &cell_internal_double[2],&cell_internal_double[5],&cell_internal_double[8]);
 
-    for (int i = 0; i < 9; i++)
-        cell[i] = cell_internal_double[i] * 1e10;
+    for (int i = 0; i < 3; i++) {
+        ffbidx_input.cell.x[i] = cell_internal_double[0 + i] * 1e10;
+        ffbidx_input.cell.y[i] = cell_internal_double[3 + i] * 1e10;
+        ffbidx_input.cell.z[i] = cell_internal_double[6 + i] * 1e10;
 
-    struct ffbidx_settings settings;
-    settings.cpers_max_spots = prv_data->opts.max_peaks;
-    settings.cifssr_min_spots = prv_data->opts.min_peaks;
-    settings.cvc_threshold = prv_data->opts.threshold_for_solution;
-    settings.cpers_max_output_cells = prv_data->opts.output_cells;
-    settings.crt_num_sample_points = prv_data->opts.sample_points;
-    settings.cpers_num_candidate_vectors = prv_data->opts.num_candidate_vectors;
-    
-    fast_feedback_crystfel(&settings, cell, x, y, z, npk);
+//        ffbidx_input.cell.x[i] = cell_internal_double[3*i] * 1e10;
+//        ffbidx_input.cell.y[i] = cell_internal_double[3*i+1] * 1e10;
+//        ffbidx_input.cell.z[i] = cell_internal_double[3*i+2] * 1e10;
+    }
 
-    free(x);
-    free(y);
-    free(z);
+    // settings.cvc_threshold = prv_data->opts.threshold_for_solution;
+    // settings.crt_num_sample_points = prv_data->opts.sample_points;
+
+    int handle = create_indexer(&cpers, NULL, NULL);
+    if (handle < 0) {
+        ERROR("Error creating indexer\n");
+        return 0;
+        // handle error
+    }
+
+    if (indexer_op(handle, &ffbidx_input, &ffbidx_output,
+                   &cruntime, &cifssr) != 0) {
+        ERROR("Error running indexer\n");
+        drop_indexer(handle);
+        return 0;
+    }
+
 
     UnitCell *uc;
 
     uc = cell_new();
 
+    int bcell = best_cell(handle, &ffbidx_output);
+
     cell_set_cartesian(uc,
-                        cell[0] * 1e-10, cell[3] * 1e-10, cell[6] * 1e-10,
-                        cell[1] * 1e-10, cell[4] * 1e-10, cell[7] * 1e-10,
-                        cell[2] * 1e-10, cell[5] * 1e-10, cell[8] * 1e-10);
+                        ffbidx_output.x[bcell * 3 + 0] * 1e-10, ffbidx_output.y[bcell * 3 + 0] * 1e-10, ffbidx_output.z[bcell * 3 + 0] * 1e-10,
+                       ffbidx_output.x[bcell * 3 + 1] * 1e-10, ffbidx_output.y[bcell * 3 + 1] * 1e-10, ffbidx_output.z[bcell * 3 + 1] * 1e-10,
+                       ffbidx_output.x[bcell * 3 + 2] * 1e-10, ffbidx_output.y[bcell * 3 + 2] * 1e-10, ffbidx_output.z[bcell * 3 + 2] * 1e-10);
 
     makeRightHanded(uc);
 
     cell_set_lattice_type(uc, cell_get_lattice_type(prv_data->cellTemplate));
     cell_set_centering(uc, cell_get_centering(prv_data->cellTemplate));
     cell_set_unique_axis(uc, cell_get_unique_axis(prv_data->cellTemplate));
+
+    free(ffbidx_input.spot.x);
+    free(ffbidx_input.spot.y);
+    free(ffbidx_input.spot.z);
+
+    free(ffbidx_input.cell.x);
+    free(ffbidx_input.cell.y);
+    free(ffbidx_input.cell.z);
+
+    free(ffbidx_output.x);
+    free(ffbidx_output.y);
+    free(ffbidx_output.z);
+    free(ffbidx_output.score);
+
+    if (drop_indexer(handle) != 0) {
+        ERROR("Error dropping indexer\n");
+    }
 
     if ( validate_cell(uc) ) {
         ERROR("ffbidx: problem with returned cell!\n");
