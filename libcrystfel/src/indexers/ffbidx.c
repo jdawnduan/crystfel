@@ -144,19 +144,16 @@ int run_ffbidx(struct image *image, void *ipriv) {
         // handle error
     }
 
-    if (indexer_op(handle, &ffbidx_input, &ffbidx_output,
-                   &cruntime, &cifssr) != 0) {
+    int bcell = indexer_op(handle, &ffbidx_input, &ffbidx_output, &cruntime, &cifssr);
+    if (bcell < 0) {
         ERROR("Error running indexer\n");
         drop_indexer(handle);
         return 0;
     }
 
-
     UnitCell *uc;
 
     uc = cell_new();
-
-    int bcell = best_cell(handle, &ffbidx_output);
 
     cell_set_cartesian(uc,
                         ffbidx_output.x[bcell * 3 + 0] * 1e-10, ffbidx_output.y[bcell * 3 + 0] * 1e-10, ffbidx_output.z[bcell * 3 + 0] * 1e-10,
