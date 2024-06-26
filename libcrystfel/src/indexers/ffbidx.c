@@ -144,13 +144,30 @@ int run_ffbidx(struct image *image, void *ipriv) {
         // handle error
     }
 
-    int bcell = indexer_op(handle, &ffbidx_input, &ffbidx_output, &cruntime, &cifssr);
-    if (bcell < 0) {
-        ERROR("Error running indexer\n");
+    if (index_start(handle, &ffbidx_input, &ffbidx_output, &cruntime, NULL, NULL)) {
+        ERROR("Error running index_start\n");
         drop_indexer(handle);
         return 0;
     }
 
+    if (index_end(handle, &ffbidx_output)) {
+        ERROR("Error running index_end\n");
+        drop_indexer(handle);
+        return 0;
+    }
+
+    if (refine(handle, &ffbidx_input, &ffbidx_output, &cifssr, 0, 1)) {
+        ERROR("Error running refine\n");
+        drop_indexer(handle);
+        return 0;
+    }
+
+    int bcell;
+    if ((bcell = best_cell(handle, &ffbidx_output)) < 0) {
+        ERROR("Error running best_cell\n");
+        drop_indexer(handle);
+        return 0;
+    }
     UnitCell *uc;
 
     uc = cell_new();
