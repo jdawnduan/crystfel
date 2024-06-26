@@ -45,9 +45,8 @@ if xgandalfdep.found()
   conf_data.set10('HAVE_XGANDALF', true)
 endif
 
-ffbidxdep = dependency('fast_indexer_crystfel',
-                         required: false,
-                         fallback: ['ffbidx', 'ffbidx_dep'])
+ffbidxdep = dependency('fast_indexer',
+                         required: false)
 if ffbidxdep.found()
   conf_data.set10('HAVE_FFBIDX', true)
 endif
@@ -77,7 +76,6 @@ msgpackdep = dependency('msgpack', required: false)
 if msgpackdep.found()
   conf_data.set10('HAVE_MSGPACK', true)
 endif
-
 
 libcrystfel_versionc = vcs_tag(input: 'src/libcrystfel-version.c.in',
                                output: 'libcrystfel-version.c')
